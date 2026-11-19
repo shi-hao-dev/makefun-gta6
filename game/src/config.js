@@ -1,61 +1,150 @@
-// Every tuning number and colour in one place. The playfield is a fixed 1280x720 logical area;
-// the renderer scales it to the window, so no rule below depends on the screen size.
+// Every tuning number, colour and name in one place. Solmar Bay is a sun-soaked coastal
+// city: streets on a 60-unit grid, the beach and ocean along the south edge (+z). Nothing here
+// depends on the screen size; the renderer scales to the window.
 
-export const FIELD = { width: 1280, height: 720, groundY: 664 };
-
-/** The simulation's fixed step, in seconds: 60 updates a second whatever the display's rate. */
 export const STEP = 1 / 60;
+export const SAVE_KEY = 'solmar-heat.save.v1';
+
+export const CITY = {
+  // Street centre lines, both directions. Blocks sit between neighbouring streets.
+  streets: [-210, -150, -90, -30, 30, 90, 150, 210],
+  roadHalf: 6,
+  walkHalf: 10,
+  // South edge: sand, then water.
+  beachStart: 245,
+  waterStart: 292,
+  bound: 248,
+};
 
 export const PLAYER = {
-  width: 72,
-  height: 24,
-  speed: 560,
-  invulnerable: 1.5,
+  walkSpeed: 5.2,
+  runSpeed: 8.4,
+  radius: 0.7,
+  health: 100,
+  enterRange: 4.5,
 };
 
-export const LIVES = 3;
-
-export const BLOCK = {
-  minWidth: 40,
-  maxWidth: 110,
-  height: 36,
-  speed: 240,
-  speedPerLevel: 30,
-  speedJitter: 90,
-  interval: 0.55,
-  intervalScale: 0.88,
-  minInterval: 0.14,
-  dodgePoints: 1,
+export const CAR = {
+  accel: 16,
+  brake: 30,
+  reverseAccel: 10,
+  maxSpeed: 34,
+  maxReverse: 10,
+  steerMax: 0.55,
+  grip: 8,
+  radius: 2.1,
+  length: 4.4,
+  width: 2.0,
 };
 
-export const COIN = {
-  size: 24,
-  speed: 190,
-  speedPerLevel: 14,
-  interval: 1.4,
-  intervalJitter: 0.8,
-  points: 10,
+export const TRAFFIC = {
+  count: 14,
+  speedMin: 8,
+  speedMax: 13,
+  radius: 2.1,
 };
 
-/** Seconds of play per level, and the last level: speeds and spawn rates stop growing there. */
-export const LEVEL = { seconds: 12, max: 12 };
+export const PED = {
+  count: 24,
+  walkMin: 1.1,
+  walkMax: 2.0,
+  fleeSpeed: 3.6,
+  radius: 0.6,
+};
 
-/** How many falling things can exist at once; the pool is allocated once, at boot. */
-export const POOL_SIZE = 64;
+export const WANTED = {
+  maxStars: 5,
+  // Heat points per crime; stars are thresholds of heat.
+  crimeSteal: 25,
+  crimeHitPed: 30,
+  crimeShoot: 20,
+  crimeRamCop: 35,
+  starAt: [0, 25, 55, 95, 145, 205],
+  decayQuietSeconds: 20,
+  decayPerSecond: 2.2,
+  bustHoldSeconds: 2.0,
+  bustCarHoldSeconds: 3.0,
+};
+
+export const POLICE = {
+  chaseSpeed: 30,
+  ramDamage: 7,
+  ramCooldown: 1.0,
+};
+
+export const COMBAT = {
+  fireRate: 0.22,
+  damage: 34,
+  range: 90,
+  pedHealth: 34,
+  copHealth: 102,
+  carHealth: 120,
+};
+
+export const MISSIONS = [
+  {
+    id: 'warmup',
+    title: 'Warm-Up Wheels',
+    briefing: 'Lena needs a wheelman. Steal the red Comet on Marina Blvd and bring it to her garage.',
+    reward: 500,
+  },
+  {
+    id: 'marina',
+    title: 'The Marina Drop',
+    briefing: 'Pick up the package at the marina pier, then deliver it to the Starfish Motel. The drop is hot — expect heat.',
+    reward: 900,
+  },
+  {
+    id: 'heatwave',
+    title: 'Heat Wave',
+    briefing: 'Three stars and every cruiser in Solmar on your tail. Lose them. All of them.',
+    reward: 1200,
+  },
+  {
+    id: 'score',
+    title: 'The Solmar Score',
+    briefing: 'The Bay Bank. Walk in, grab the cash, and get to the safehouse with the whole city chasing you.',
+    reward: 3000,
+  },
+];
+
+export const STASH_COUNT = 8;
+export const STASH_REWARD = 150;
 
 export const PALETTE = {
-  backdrop: '#11141b',
-  sky: '#1b1f2a',
-  ground: '#2a3040',
-  player: '#4fc3f7',
-  block: '#e5534b',
-  coin: '#f2c94c',
-  panel: '#252b38',
-  text: '#eef1f5',
-  muted: '#8b93a3',
+  sky: 0x8ec9ee,
+  skyHorizon: 0xf6d9a0,
+  sun: 0xffe3b3,
+  fog: 0xd8e6f2,
+  ground: 0x3a3f46,
+  asphalt: 0x33373d,
+  sidewalk: 0x9a938a,
+  sand: 0xe8d29a,
+  ocean: 0x2e7fb8,
+  oceanDeep: 0x1d5f8f,
+  buildingRoof: 0x6b6f76,
+  grass: 0x5f9e52,
+  palmTrunk: 0x8a6a45,
+  palmLeaf: 0x3f8f4f,
+  lamp: 0x2c2f33,
+  playerJacket: 0x2fb3a3,
+  playerPants: 0x2a2f38,
+  policeWhite: 0xf2f4f6,
+  policeBlack: 0x1c1e22,
+  hudText: '#f4f6f8',
+  hudMuted: '#c8ccd2',
+  star: '#ffd23f',
+  marker: 0xffc93c,
+  markerBeam: 0xffe27a,
 };
 
-export const FONT = 'system-ui, -apple-system, "Segoe UI", sans-serif';
-
-/** Where the best score is kept between visits (this browser only). */
-export const BEST_KEY = 'block-dodger.best';
+export const NAMES = {
+  game: 'SOLMAR HEAT',
+  city: 'Solmar Bay',
+  player: 'Jace Moreno',
+  fixer: 'Lena Cruz',
+  bank: 'Bay Bank',
+  garage: "Lena's Garage",
+  motel: 'Starfish Motel',
+  safehouse: 'The Safehouse',
+};
