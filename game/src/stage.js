@@ -1,9 +1,7 @@
-// The three.js stage: renderer, a warm sun-soaked sky, fog, and a sun that follows the player
-// so its shadows stay crisp wherever the action goes.
+// The three.js stage: the renderer, a warm sun-soaked sky, fog, and a sun that follows
+// the player so its shadows stay crisp wherever the action goes.
 
-const THREE = window.THREE;
-
-export function createStage(canvas) {
+export function makeStage(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.shadowMap.enabled = true;
@@ -33,13 +31,13 @@ export function createStage(canvas) {
   scene.add(sun.target);
 
   // A pale sun disc and a few soft clouds for the sky.
-  const sunDisc = new THREE.Mesh(
+  const disc = new THREE.Mesh(
     new THREE.CircleGeometry(18, 24),
     new THREE.MeshBasicMaterial({ color: 0xfff6d8, fog: false }),
   );
-  sunDisc.position.set(240, 260, -320);
-  sunDisc.lookAt(0, 0, 0);
-  scene.add(sunDisc);
+  disc.position.set(240, 260, -320);
+  disc.lookAt(0, 0, 0);
+  scene.add(disc);
   const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.75, fog: false });
   for (const [x, y, z, s] of [[-160, 150, -260, 40], [60, 170, -300, 55], [200, 140, 180, 45], [-220, 160, 120, 38]]) {
     const cloud = new THREE.Mesh(new THREE.SphereGeometry(s, 12, 8), cloudMat);
@@ -48,26 +46,25 @@ export function createStage(canvas) {
     scene.add(cloud);
   }
 
+  const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 1200);
+  camera.position.set(0, 8, -12);
+
   function resize() {
     const w = window.innerWidth;
     const h = window.innerHeight;
     renderer.setSize(w, h, false);
-    const camera = stageCamera;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
-
-  const stageCamera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.1, 1200);
-  stageCamera.position.set(0, 8, -12);
   window.addEventListener('resize', resize);
   resize();
 
   /** Keep the sun and its shadow box centred on the action. */
-  function updateSun(fx, fz) {
+  function sunFollow(fx, fz) {
     sun.position.set(fx + 90, 130, fz - 60);
     sun.target.position.set(fx, 0, fz);
     sun.target.updateMatrixWorld();
   }
 
-  return { renderer, scene, camera: stageCamera, updateSun };
+  return { renderer, scene, camera, sunFollow };
 }

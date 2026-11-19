@@ -4,13 +4,15 @@
 [![rank](https://make.fun/badge/gta6-01/shi-hao-dev/makefun-gta6/rank.svg)](https://make.fun/bounty/gta6-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
 [![reward](https://make.fun/badge/gta6-01/shi-hao-dev/makefun-gta6/reward.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
 
-Solmar Heat — an open-world crime game in Solmar Bay, a sun-soaked coastal city you explore on foot and by car. Steal cars and drive them through live traffic, dodge pedestrians, earn a wanted level and outrun the cruisers and foot cops who answer it, and work Lena Cruz's four-job story: steal the Comet, run the marina drop, lose a three-star heat, and pull the Solmar Score at the Bay Bank. A HUD with a live minimap, wanted stars, health, cash and mission objectives tracks it all, with procedural sound, savegames, and hidden cash stashes across the city. Built with three.js, vendored under game/vendor/, and fully playable offline from its own files — open http://localhost:8080 after running the command below.
+**Solmar Heat** is an open-world crime game set in Solmar Bay, a sun-baked coastal city. On foot and behind the wheel you steal cars, thread live traffic, dodge pedestrians, pick up wanted stars and outrun the cruisers and foot cops that come with them — while working Lena Cruz's four-job story: boost the red Comet, run the marina drop, shake a three-star heat, and pull the Solmar Score at the Bay Bank. A live HUD (minimap, wanted stars, health, cash, objectives), procedural WebAudio sound, localStorage saves and eight hidden cash stashes round it out. It is built on three.js, vendored under `game/vendor/`, and runs entirely offline from its own files.
 
-## Run it
+## Play it
 
 ```sh
 node serve.ts
 ```
+
+Then open http://localhost:8080 — no build step, no network.
 
 ---
 

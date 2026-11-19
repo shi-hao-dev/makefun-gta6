@@ -1,2 +1,4 @@
+# Build output from `MAKEFUN_OUTPUT_DIR=out node main.ts` — never committed.
 out/
+# Local dependencies, if any are ever installed.
 node_modules/

@@ -1,28 +1,29 @@
-// Keyboard and mouse input. Held keys steer; one-shot presses (confirm, pause, enter car,
-// mute) queue as flags and are taken once by the loop, so a press between frames is never
-// lost or counted twice. The mouse orbits the camera by drag, or by pointer lock after a click.
+// Keyboard and mouse input. Held keys steer; one-shot presses (confirm, pause, enter
+// car, mute) queue as flags and are taken once by the loop, so a press between frames is
+// never lost or counted twice. The mouse orbits the camera by drag, or by pointer lock
+// after a click.
 
-export const ACTION_CONFIRM = 1;
-export const ACTION_PAUSE = 2;
-export const ACTION_ENTER = 4;
-export const ACTION_MUTE = 8;
+export const ACT_OK = 1;
+export const ACT_PAUSE = 2;
+export const ACT_RIDE = 4;
+export const ACT_MUTE = 8;
 
 const FORWARD = new Set(['KeyW', 'ArrowUp']);
 const BACK = new Set(['KeyS', 'ArrowDown']);
 const LEFT = new Set(['KeyA', 'ArrowLeft']);
 const RIGHT = new Set(['KeyD', 'ArrowRight']);
 const RUN = new Set(['ShiftLeft', 'ShiftRight']);
-const HANDBRAKE = new Set(['Space']);
+const BRAKE = new Set(['Space']);
 const CONFIRM = new Set(['Enter']);
 const PAUSE = new Set(['KeyP', 'Escape']);
 const ENTER = new Set(['KeyE']);
 const MUTE = new Set(['KeyM']);
 
-export function createInput(canvas) {
+export function makeKeys(canvas) {
   const keys = new Set();
-  let actions = 0;
+  let acts = 0;
   let mouseDown = false;
-  let shooting = false;
+  let firing = false;
   let dragDX = 0;
   let dragDY = 0;
   let wheelDelta = 0;
@@ -34,11 +35,11 @@ export function createInput(canvas) {
       return;
     }
     keys.add(event.code);
-    if (CONFIRM.has(event.code)) actions |= ACTION_CONFIRM;
-    else if (PAUSE.has(event.code)) actions |= ACTION_PAUSE;
-    else if (ENTER.has(event.code)) actions |= ACTION_ENTER;
-    else if (MUTE.has(event.code)) actions |= ACTION_MUTE;
-    if (FORWARD.has(event.code) || BACK.has(event.code) || LEFT.has(event.code) || RIGHT.has(event.code) || HANDBRAKE.has(event.code)) {
+    if (CONFIRM.has(event.code)) acts |= ACT_OK;
+    else if (PAUSE.has(event.code)) acts |= ACT_PAUSE;
+    else if (ENTER.has(event.code)) acts |= ACT_RIDE;
+    else if (MUTE.has(event.code)) acts |= ACT_MUTE;
+    if (FORWARD.has(event.code) || BACK.has(event.code) || LEFT.has(event.code) || RIGHT.has(event.code) || BRAKE.has(event.code)) {
       event.preventDefault();
     }
   });
@@ -48,27 +49,24 @@ export function createInput(canvas) {
   window.addEventListener('blur', () => {
     keys.clear();
     mouseDown = false;
-    shooting = false;
+    firing = false;
   });
 
   canvas.addEventListener('pointerdown', (event) => {
     if (event.button === 0) {
       mouseDown = true;
-      shooting = true;
-      actions |= ACTION_CONFIRM;
+      firing = true;
+      acts |= ACT_OK;
     }
   });
   window.addEventListener('pointerup', (event) => {
     if (event.button === 0) {
       mouseDown = false;
-      shooting = false;
+      firing = false;
     }
   });
   canvas.addEventListener('pointermove', (event) => {
-    if (locked) {
-      dragDX += event.movementX || 0;
-      dragDY += event.movementY || 0;
-    } else if (mouseDown) {
+    if (locked || mouseDown) {
       dragDX += event.movementX || 0;
       dragDY += event.movementY || 0;
     }
@@ -88,30 +86,30 @@ export function createInput(canvas) {
       const s = (keys.has('KeyD') || keys.has('ArrowRight') ? 1 : 0) - (keys.has('KeyA') || keys.has('ArrowLeft') ? 1 : 0);
       return { f, s };
     },
-    running() {
+    sprinting() {
       return keys.has('ShiftLeft') || keys.has('ShiftRight');
     },
-    handbrake() {
+    braking() {
       return keys.has('Space');
     },
-    shooting() {
-      return shooting;
+    isFiring() {
+      return firing;
     },
     /** Mouse orbit deltas since the last call. */
-    takeDrag() {
+    takeMove() {
       const d = { dx: dragDX, dy: dragDY, wheel: wheelDelta };
       dragDX = 0;
       dragDY = 0;
       wheelDelta = 0;
       return d;
     },
-    takeActions() {
-      const taken = actions;
-      actions = 0;
+    takeActs() {
+      const taken = acts;
+      acts = 0;
       return taken;
     },
     /** Ask the browser to lock the pointer to the canvas (driving aim). */
-    lockPointer() {
+    lock() {
       if (!locked && canvas.requestPointerLock) {
         try {
           canvas.requestPointerLock();
