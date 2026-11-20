@@ -1,0 +1,183 @@
+{
+  "type": "Node simulation with rendering shim; not a browser playtest",
+  "results": [
+    {
+      "label": "job0",
+      "mode": "playing",
+      "x": 0.5147375799882327,
+      "z": 0,
+      "hp": 100,
+      "car": true,
+      "carHealth": 100,
+      "speed": 0.165496932622609,
+      "job": 1,
+      "phase": 0,
+      "hold": 0,
+      "earnings": 500,
+      "cash": 500,
+      "stars": 1,
+      "quiet": 1.2666666666666897,
+      "target": {
+        "x": 0,
+        "z": 240
+      },
+      "units": [
+        {
+          "x": -112.00000000000094,
+          "z": -60,
+          "recover": 0
+        }
+      ]
+    },
+    {
+      "label": "package",
+      "mode": "playing",
+      "x": 4.2370276683803,
+      "z": 241.01473757994845,
+      "hp": 100,
+      "car": false,
+      "carHealth": null,
+      "speed": 0,
+      "job": 1,
+      "phase": 1,
+      "hold": 0,
+      "earnings": 500,
+      "cash": 500,
+      "stars": 1,
+      "quiet": 0,
+      "target": {
+        "x": -120,
+        "z": 120
+      },
+      "units": [
+        {
+          "x": -58.66666666666671,
+          "z": 180,
+          "recover": 0
+        }
+      ]
+    },
+    {
+      "label": "job1",
+      "mode": "playing",
+      "x": -120.47770991158744,
+      "z": 118.47770991159473,
+      "hp": 100,
+      "car": true,
+      "carHealth": 100,
+      "speed": 0.1654969326227432,
+      "job": 2,
+      "phase": 0,
+      "hold": 0,
+      "earnings": 1400,
+      "cash": 1400,
+      "stars": 3,
+      "quiet": 0,
+      "target": {
+        "x": -120,
+        "z": 0
+      },
+      "units": [
+        {
+          "x": -43.97823276423993,
+          "z": 121.30648970962824,
+          "recover": 0
+        },
+        {
+          "x": -70.6666666666673,
+          "z": 60,
+          "recover": 0
+        },
+        {
+          "x": -169.3333333333328,
+          "z": 180,
+          "recover": 0
+        }
+      ]
+    },
+    {
+      "label": "job2",
+      "mode": "playing",
+      "x": 121.55176524832113,
+      "z": -120.5963454251006,
+      "hp": 100,
+      "car": true,
+      "carHealth": 100,
+      "speed": 0.16549693262293153,
+      "job": 3,
+      "phase": 0,
+      "hold": 0,
+      "earnings": 2600,
+      "cash": 2600,
+      "stars": 0,
+      "quiet": 0,
+      "target": {
+        "x": 120,
+        "z": 0
+      },
+      "units": []
+    },
+    {
+      "label": "bankHold",
+      "mode": "playing",
+      "x": 125.26316673526736,
+      "z": 0.41839215484023096,
+      "hp": 64,
+      "car": false,
+      "carHealth": null,
+      "speed": 0,
+      "job": 3,
+      "phase": 2,
+      "hold": 12.016666666664788,
+      "earnings": 2600,
+      "cash": 2600,
+      "stars": 4,
+      "quiet": 0,
+      "target": {
+        "x": -120,
+        "z": -120
+      },
+      "units": [
+        {
+          "x": 119.989082168785,
+          "z": -71.06951796248912,
+          "recover": 2.750000000000988
+        },
+        {
+          "x": 155.21196081142114,
+          "z": -0.21657753802113877,
+          "recover": 6.71666666666704
+        },
+        {
+          "x": 119.94932420843325,
+          "z": 72.53343200349423,
+          "recover": 2.700000000000995
+        },
+        {
+          "x": 152.25447719782164,
+          "z": 0.4848250208300053,
+          "recover": 6.983333333333663
+        }
+      ]
+    },
+    {
+      "label": "job3",
+      "mode": "complete",
+      "x": -109.39625897035815,
+      "z": -121.35602837683444,
+      "hp": 64.025,
+      "car": true,
+      "carHealth": 95,
+      "speed": 29.999999999999986,
+      "job": 4,
+      "phase": 0,
+      "hold": 0,
+      "earnings": 5600,
+      "cash": 5600,
+      "stars": 0,
+      "quiet": 0,
+      "target": null,
+      "units": []
+    }
+  ]
+}
