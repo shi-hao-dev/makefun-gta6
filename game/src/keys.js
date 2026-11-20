@@ -8,7 +8,7 @@ export const ACT_ENTER = 4; // E, get in / out of a car
 export const ACT_MUTE = 8; // M
 export const ACT_FIRE = 16; // clean mouse click (a drag is a look, not a shot)
 
-export function makeControls(canvas) {
+export function makeKeys(canvas) {
   const keys = new Set();
   let acts = 0;
   let firing = false;

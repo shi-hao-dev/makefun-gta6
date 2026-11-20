@@ -1,11 +1,11 @@
-// Particles: a small pool of glowing cubes for impacts, smoke and explosions.
+// Sparks: a small pool of glowing cubes for impacts, smoke and explosions.
 // One shared pool, no allocation per burst, so a firefight never stutters.
 
 const THREE = window.THREE;
 
 const POOL = 240;
 
-export class Particles {
+export class Sparks {
   constructor(scene) {
     this.scene = scene;
     this.items = [];

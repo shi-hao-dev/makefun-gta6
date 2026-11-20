@@ -2,12 +2,12 @@
 // live 2D minimap, toasts, banners and the full-screen overlays. All DOM —
 // the 3D scene never draws UI, so the HUD is crisp at any resolution.
 
-import { dollars } from './util.js';
+import { cash } from './rand.js';
 
 const STAR_ON = '★';
 const STAR_OFF = '☆';
 
-export class Panel {
+export class Hud {
   constructor(doc) {
     this.doc = doc;
     this.el = {};
@@ -58,7 +58,7 @@ export class Panel {
   }
 
   setCash(n) {
-    if (this.el.money) this.el.money.textContent = dollars(n);
+    if (this.el.money) this.el.money.textContent = cash(n);
   }
 
   setHealth(h) {

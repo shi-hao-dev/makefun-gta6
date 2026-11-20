@@ -3,7 +3,7 @@
 // something, hold a spot, lose the heat — and a glowing beacon in the world
 // marks the current goal.
 
-import { gap } from './util.js';
+import { dist2 } from './rand.js';
 
 const STASH_PAY = 150;
 
@@ -59,7 +59,7 @@ const JOBS = [
   },
 ];
 
-export class Story {
+export class Missions {
   constructor(scene, places) {
     this.scene = scene;
     this.places = places;
@@ -160,7 +160,7 @@ export class Story {
   gap(hero) {
     const t = this.target;
     if (!t) return null;
-    return gap(hero.x, hero.z, t.x, t.z);
+    return dist2(hero.x, hero.z, t.x, t.z);
   }
 
   advance() {
@@ -192,7 +192,7 @@ export class Story {
     // Stashes: walk or drive over one to collect it.
     for (const s of this.stashes) {
       if (s.taken) continue;
-      if (gap(ctx.hero.x, ctx.hero.z, s.x, s.z) < 2.6) {
+      if (dist2(ctx.hero.x, ctx.hero.z, s.x, s.z) < 2.6) {
         s.taken = true;
         s.mesh.visible = false;
         this.cash += STASH_PAY;
@@ -207,7 +207,7 @@ export class Story {
     const hero = ctx.hero;
     if (s.kind === 'goto') {
       const t = this.target;
-      if (gap(hero.x, hero.z, t.x, t.z) < s.radius) {
+      if (dist2(hero.x, hero.z, t.x, t.z) < s.radius) {
         if (s.inMissionCar && !(hero.inCar && hero.car === this.missionCar)) return;
         this.advance();
       }
@@ -216,11 +216,11 @@ export class Story {
     } else if (s.kind === 'grab') {
       if (!hero.inCar) {
         const t = this.target;
-        if (gap(hero.x, hero.z, t.x, t.z) < s.radius) this.advance();
+        if (dist2(hero.x, hero.z, t.x, t.z) < s.radius) this.advance();
       }
     } else if (s.kind === 'hold') {
       const t = this.target;
-      if (gap(hero.x, hero.z, t.x, t.z) < s.radius) {
+      if (dist2(hero.x, hero.z, t.x, t.z) < s.radius) {
         this.hold += dt;
         if (this.hold >= s.holdSecs) this.advance();
       } else {

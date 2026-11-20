@@ -6,7 +6,7 @@ const THREE = window.THREE;
 
 const RANGE = 60;
 
-export class Weapon {
+export class Pistol {
   constructor(scene) {
     this.scene = scene;
     this.tracers = [];

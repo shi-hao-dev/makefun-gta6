@@ -2,9 +2,9 @@
 // car, swings with the mouse, zooms with the wheel, and shakes on impacts.
 // The player never fights it — it follows the heading, it never orbits.
 
-import { angleDiff, clamp, lerp } from './util.js';
+import { turnDiff, clamp, lerp } from './rand.js';
 
-export class View {
+export class Rig {
   constructor(camera) {
     this.camera = camera;
     this.yaw = 0; // extra yaw the player drags with the mouse
@@ -39,9 +39,9 @@ export class View {
    * Chase the focus {x, z, heading, inCar}. The camera trails behind the
    * heading, eased so it never snaps, and looks a little ahead of the motion.
    */
-  followCam(dt, focus, time) {
+  follow(dt, focus, time) {
     const wantYaw = focus.heading;
-    let dy = angleDiff(wantYaw, this.yaw);
+    let dy = turnDiff(wantYaw, this.yaw);
     // When the player drags the mouse they own the yaw; ease back gently.
     this.yaw += dy * Math.min(1, dt * 1.4);
     const dist = focus.inCar ? this.dist + 2.5 : this.dist;

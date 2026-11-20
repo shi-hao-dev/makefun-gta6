@@ -4,6 +4,9 @@
 // under game/vendor/). Running this file assembles the submission: it copies
 // game/ and screenshots/ into the output directory and writes dossier.json
 // there, using the vendored make.fun library.
+// Fourth build of the entry: the game itself was rewritten fresh (radial
+// collision so cars slide around corners instead of wedging, and a low-speed
+// steering floor so slow cars can still turn). This file only assembles it.
 // Play it locally first: `node serve.ts`, then open http://localhost:8080.
 // The grader runs this in its own container with /output as the target; outside
 // that container, MAKEFUN_OUTPUT_DIR takes /output's place:

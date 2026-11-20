@@ -1,28 +1,33 @@
-// Cars: one procedural mesh factory and one arcade Car class. The player, the
-// traffic and the police all drive the same physics — throttle, steering that
-// bites less the faster you go, a handbrake that breaks the rear loose — and
-// differ only in who holds the wheel.
+// Cars: one procedural body factory and one arcade Vehicle class. The
+// player, the traffic and the police all drive the same physics — throttle,
+// steering that bites less the faster you go, a handbrake that breaks the
+// rear loose — and differ only in who holds the wheel.
+//
+// Two things keep a car out of trouble: the steering keeps a floor at low
+// speed, so a slow car can still swing around a tight corner instead of
+// ploughing straight into a wall, and the collision circle is tight (1.7 m),
+// so a car threads the road without catching every building corner.
 
-import { angleDiff, clamp } from './util.js';
+import { turnDiff, clamp } from './rand.js';
 
 const THREE = window.THREE;
 
-const PAINT = [0xc0392b, 0x2e6fb8, 0xe8c832, 0x7d3c98, 0x2f8f5b, 0xd86a1e, 0x8a9ab0, 0x3a3f46];
+const PAINTS = [0xc0392b, 0x2e6fb8, 0xe8c832, 0x7d3c98, 0x2f8f5b, 0xd86a1e, 0x8a9ab0, 0x3a3f46];
 
-function paint(color, rough = 0.5, metal = 0.4) {
+function finish(color, rough = 0.5, metal = 0.4) {
   return new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
 }
 
-export function randomPaint(rng) {
-  return PAINT[Math.floor(rng.next() * PAINT.length)];
+export function randomPaint(dice) {
+  return PAINTS[Math.floor(dice.roll() * PAINTS.length)];
 }
 
 /** A low-poly car: body, cabin, four wheels, lights. kind: sedan | sport | cop | taxi. */
-export function makeCarMesh(color, kind = 'sedan') {
+export function buildCarBody(color, kind = 'sedan') {
   const group = new THREE.Group();
-  const bodyMat = kind === 'cop' ? paint(0xf2f4f6, 0.4, 0.3) : paint(color, 0.45, 0.4);
-  const glassMat = paint(0x141c26, 0.25, 0.7);
-  const trimMat = paint(0x1c1e22, 0.7, 0.2);
+  const bodyMat = kind === 'cop' ? finish(0xf2f4f6, 0.4, 0.3) : finish(color, 0.45, 0.4);
+  const glassMat = finish(0x141c26, 0.25, 0.7);
+  const trimMat = finish(0x1c1e22, 0.7, 0.2);
   const low = kind === 'sport';
   const bodyH = low ? 0.7 : 0.85;
   const bodyY = low ? 0.62 : 0.72;
@@ -44,7 +49,7 @@ export function makeCarMesh(color, kind = 'sedan') {
     group.add(wing);
   }
   if (kind === 'cop') {
-    const door = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.5, 2.02), paint(0x1c1e22, 0.5, 0.3));
+    const door = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.5, 2.02), finish(0x1c1e22, 0.5, 0.3));
     door.position.set(0.1, bodyY, 0);
     group.add(door);
     const bar = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.18, 1.5), trimMat);
@@ -69,7 +74,7 @@ export function makeCarMesh(color, kind = 'sedan') {
   }
 
   const wheelGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.3, 12);
-  const wheelMat = paint(0x141518, 0.9, 0.1);
+  const wheelMat = finish(0x141518, 0.9, 0.1);
   const wheels = [];
   for (const [wx, wz] of [[1.45, 0.95], [1.45, -0.95], [-1.45, 0.95], [-1.45, -0.95]]) {
     const pivot = new THREE.Group();
@@ -99,7 +104,7 @@ export function makeCarMesh(color, kind = 'sedan') {
   return group;
 }
 
-export class Car {
+export class Vehicle {
   constructor(mesh, kind = 'sedan') {
     this.mesh = mesh;
     this.kind = kind;
@@ -121,6 +126,8 @@ export class Car {
     this.cruiseSpeed = 10;
     this.wait = 0;
     this.smokeWait = 0;
+    this.ramWait = 0; // seconds until this car can land another damaging ram
+    this.backoff = 0; // seconds to peel off after landing a ram
     this.sync();
   }
 
@@ -140,17 +147,20 @@ export class Car {
   }
 
   /**
-   * Arcade step. ctrl is {fwd -1..1, steer -1..1, brake, handbrake}. Returns the
-   * impact speed when the car hit something hard, else 0.
+   * Arcade step. ctrl is {fwd -1..1, steer -1..1, brake, handbrake}. Returns
+   * the impact speed when the car hit something hard, else 0.
    */
-  drive(dt, ctrl, world) {
+  drive(dt, ctrl, city) {
     if (this.dead) return 0;
     const maxSteer = 0.55 / (1 + Math.abs(this.speed) * 0.045);
     const steerTarget = ctrl.steer * maxSteer;
     this.steer += (steerTarget - this.steer) * Math.min(1, dt * 8);
-    // Gentle turn rate: a twitchy car overshoots every corner and wedges
-    // itself in buildings. ~1.4 rad/s at speed keeps it controllable.
-    this.heading += (this.speed / 4.5) * Math.tan(this.steer) * dt * (ctrl.handbrake ? 1.5 : 1);
+    // Turn rate keeps a floor at low speed: a car crawling at 2 m/s still
+    // turns ~0.5 rad/s, so it can swing around a tight corner instead of
+    // ploughing straight into the wall in front of it.
+    const turnSpeed = Math.max(Math.abs(this.speed), 5.0);
+    const dir = this.speed >= 0 ? 1 : -1;
+    this.heading += dir * (turnSpeed / 4.5) * Math.tan(this.steer) * dt * (ctrl.handbrake ? 1.5 : 1);
     let accel = ctrl.fwd * 16;
     if (ctrl.brake) accel -= Math.sign(this.speed) * 30;
     if (ctrl.handbrake) accel -= Math.sign(this.speed) * 10;
@@ -164,7 +174,7 @@ export class Car {
     const nz = this.z + f.z * this.speed * dt;
     // A tight collision circle lets the car thread the road without
     // catching every building corner.
-    const hit = world.collideCircle(nx, nz, 1.7);
+    const hit = city.pushOut(nx, nz, 1.7);
     const impact = hit.hit ? Math.abs(this.speed) : 0;
     if (hit.hit) {
       const dot = f.x * hit.nx + f.z * hit.nz;
@@ -182,21 +192,21 @@ export class Car {
   }
 
   /** Traffic AI: chase the target intersection, then pick a neighbouring one. */
-  cruise(dt, world, rng, others) {
+  cruise(dt, city, dice, others) {
     if (this.dead) return 0;
     if (!this.target) {
-      this.target = world.randomCrossing(rng);
-      this.cruiseSpeed = 8 + rng.next() * 5;
+      this.target = city.randomCrossing(dice);
+      this.cruiseSpeed = 8 + dice.roll() * 5;
     }
     const dx = this.target.x - this.x;
     const dz = this.target.z - this.z;
     const dist = Math.hypot(dx, dz);
     if (dist < 5) {
-      this.target = nextCrossing(world, this.target, rng);
-      return this.drive(dt, { fwd: 0, steer: 0, brake: false, handbrake: false }, world);
+      this.target = nextCrossing(city, this.target, dice);
+      return this.drive(dt, { fwd: 0, steer: 0, brake: false, handbrake: false }, city);
     }
     const want = Math.atan2(dx, dz);
-    const diff = angleDiff(want, this.heading);
+    const diff = turnDiff(want, this.heading);
     let throttle = 0.55;
     for (const other of others) {
       if (other === this || other.dead) continue;
@@ -209,37 +219,37 @@ export class Car {
       }
     }
     if (dist < 18) throttle = Math.min(throttle, 0.3);
-    return this.drive(dt, { fwd: throttle, steer: clamp(diff * 2.2, -1, 1), brake: false, handbrake: false }, world);
+    return this.drive(dt, { fwd: throttle, steer: clamp(diff * 2.2, -1, 1), brake: false, handbrake: false }, city);
   }
 
   /** Police AI: steer at the target point and ram it. */
-  chase(dt, world, tx, tz) {
+  chase(dt, city, tx, tz) {
     if (this.dead) return 0;
     const dx = tx - this.x;
     const dz = tz - this.z;
     const want = Math.atan2(dx, dz);
-    const diff = angleDiff(want, this.heading);
+    const diff = turnDiff(want, this.heading);
     const dist = Math.hypot(dx, dz);
     const throttle = dist > 6 ? 1 : 0.4;
-    return this.drive(dt, { fwd: throttle, steer: clamp(diff * 2.6, -1, 1), brake: false, handbrake: false }, world);
+    return this.drive(dt, { fwd: throttle, steer: clamp(diff * 2.6, -1, 1), brake: false, handbrake: false }, city);
   }
 }
 
-function nextCrossing(world, current, rng) {
+function nextCrossing(city, current, dice) {
   const options = [];
-  for (const p of world.crossings) {
+  for (const p of city.crossings) {
     const dx = Math.abs(p.x - current.x);
     const dz = Math.abs(p.z - current.z);
     if ((dx === 60 && dz === 0) || (dz === 60 && dx === 0)) options.push(p);
   }
-  if (options.length === 0) return world.randomCrossing(rng);
-  return options[Math.floor(rng.next() * options.length)];
+  if (options.length === 0) return city.randomCrossing(dice);
+  return options[Math.floor(dice.roll() * options.length)];
 }
 
 /** Push two overlapping cars apart and report the impact speed. An anchored
  * car (the parked mission car, before it is stolen) never moves — the other
  * car takes the full push instead. */
-export function separateCars(a, b) {
+export function shoveApart(a, b) {
   if (a.dead || b.dead) return 0;
   const dx = b.x - a.x;
   const dz = b.z - a.z;

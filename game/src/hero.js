@@ -3,11 +3,11 @@
 // app copies the car's position onto the hero every step, so the camera, the
 // missions and the police never lose track of him.
 
-import { makePedMesh } from './ped.js';
+import { buildPerson } from './crowd.js';
 
 /** The hero mesh: a teal jacket and dark jeans, so he reads against the crowd. */
-export function makePlayerMesh() {
-  const group = makePedMesh({ next: () => 0.5 }, false);
+export function buildHeroMesh() {
+  const group = buildPerson({ roll: () => 0.5 }, false);
   // Recolour the jacket teal and the jeans dark.
   const teal = 0x1a8a7a;
   group.children.forEach((child) => {
@@ -19,7 +19,7 @@ export function makePlayerMesh() {
   return group;
 }
 
-export class Player {
+export class Hero {
   constructor(mesh) {
     this.mesh = mesh;
     this.x = 0;
@@ -38,7 +38,7 @@ export class Player {
   }
 
   /** Walk. mx/mz is a world-space direction; sprint doubles the pace. */
-  walk(dt, mx, mz, sprint, world) {
+  walk(dt, mx, mz, sprint, city) {
     if (this.inCar) return;
     const len = Math.hypot(mx, mz);
     if (len < 0.01) {
@@ -55,7 +55,7 @@ export class Player {
     while (diff > Math.PI) diff -= Math.PI * 2;
     while (diff < -Math.PI) diff += Math.PI * 2;
     this.heading += diff * Math.min(1, dt * 10);
-    const hit = world.collideCircle(nx, nz, 0.6);
+    const hit = city.pushOut(nx, nz, 0.6);
     this.x = hit.x;
     this.z = hit.z;
     this.stepPhase += dt * speed * 1.6;

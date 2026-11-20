@@ -1,4 +1,4 @@
-// Pedestrians: a simple procedural person mesh and a Walker class. Walkers
+// The crowd: a simple procedural person mesh and a Walker class. Walkers
 // wander the sidewalks, scatter when they hear a gunshot, and fall down when
 // hit. Foot cops are the same mesh in a dark uniform with a cap.
 
@@ -12,10 +12,10 @@ function cloth(color, rough = 0.85) {
 }
 
 /** A low-poly person: torso, head, two legs, two arms. cop swaps the palette. */
-export function makePedMesh(rng, cop = false) {
+export function buildPerson(dice, cop = false) {
   const group = new THREE.Group();
-  const shirt = cop ? 0x1c2a4a : SHIRTS[Math.floor(rng.next() * SHIRTS.length)];
-  const skin = SKINS[Math.floor(rng.next() * SKINS.length)];
+  const shirt = cop ? 0x1c2a4a : SHIRTS[Math.floor(dice.roll() * SHIRTS.length)];
+  const skin = SKINS[Math.floor(dice.roll() * SKINS.length)];
   const pants = cop ? 0x141c26 : 0x2a2f36;
 
   const torso = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.72, 0.34), cloth(shirt));
@@ -65,7 +65,7 @@ export function makePedMesh(rng, cop = false) {
   return group;
 }
 
-export class Ped {
+export class Walker {
   constructor(mesh, cop = false) {
     this.mesh = mesh;
     this.cop = cop;
@@ -104,7 +104,7 @@ export class Ped {
   }
 
   /** Wander to a random crossing, or run from a threat. */
-  walk(dt, world, rng) {
+  walk(dt, city, dice) {
     if (this.dead) return;
     let tx;
     let tz;
@@ -115,11 +115,11 @@ export class Ped {
       tz = this.z + this.fleeZ * 30;
       speed = this.cop ? 3.4 : 4.2;
     } else {
-      if (!this.target) this.target = world.randomCrossing(rng);
+      if (!this.target) this.target = city.randomCrossing(dice);
       tx = this.target.x;
       tz = this.target.z;
       if (Math.hypot(tx - this.x, tz - this.z) < 4) {
-        this.target = world.randomCrossing(rng);
+        this.target = city.randomCrossing(dice);
         tx = this.target.x;
         tz = this.target.z;
       }
@@ -131,7 +131,7 @@ export class Ped {
     this.heading += diff * Math.min(1, dt * 5);
     const nx = this.x + Math.sin(this.heading) * speed * dt;
     const nz = this.z + Math.cos(this.heading) * speed * dt;
-    const hit = world.collideCircle(nx, nz, 0.5);
+    const hit = city.pushOut(nx, nz, 0.5);
     this.x = hit.x;
     this.z = hit.z;
     // Walk cycle: swing the limbs.

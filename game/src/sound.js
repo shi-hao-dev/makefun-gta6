@@ -2,7 +2,7 @@
 // speed, a two-tone siren when the heat is on, gunshots, crashes, pickups and
 // UI blips. The context only starts on a player gesture, and M mutes it all.
 
-export class Sfx {
+export class Sound {
   constructor() {
     this.ctx = null;
     this.master = null;

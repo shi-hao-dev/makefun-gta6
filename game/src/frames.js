@@ -5,10 +5,10 @@
 
 /**
  * Pose a shot. game is the app's game object: {hero, traffic, heat, story,
- * view, missionCar, places, panel, screen, frozen}.
+ * rig, missionCar, places, hud, screen, frozen}.
  */
-export function poseShot(name, game) {
-  const { hero, view, heat, story } = game;
+export function poseFrame(name, game) {
+  const { hero, rig, heat, story } = game;
   const P = game.places;
   game.screen = 'playing';
   game.frozen = true;
@@ -29,7 +29,7 @@ export function poseShot(name, game) {
   if (name === 'cover') {
     // The red Comet front and centre, three stars, traffic streaming past.
     putHeroInCar(game.missionCar, 0, -30, Math.PI * 0.15);
-    heat.set(3);
+    heat.setStars(3);
     const cop = heat.cars[0];
     if (cop) {
       cop.x = -14;
@@ -37,12 +37,12 @@ export function poseShot(name, game) {
       cop.heading = Math.PI * 0.1;
       cop.sync();
     }
-    view.yaw = Math.PI * 0.15;
-    view.pitch = 0.3;
-    view.dist = 12;
-    game.panel.setStars(3);
-    game.panel.setCash(story.cash + 500);
-    game.panel.setBrief("Warm-Up Wheels: Bring the Comet to Lena's garage", 86);
+    rig.yaw = Math.PI * 0.15;
+    rig.pitch = 0.3;
+    rig.dist = 12;
+    game.hud.setStars(3);
+    game.hud.setCash(story.cash + 500);
+    game.hud.setBrief("Warm-Up Wheels: Bring the Comet to Lena's garage", 86);
   } else if (name === 'street') {
     // On foot on the avenue, traffic rolling by, the city behind him.
     if (hero.inCar) hero.exit();
@@ -50,19 +50,19 @@ export function poseShot(name, game) {
     hero.z = 60;
     hero.heading = Math.PI;
     hero.sync();
-    heat.set(0);
-    view.yaw = Math.PI;
-    view.pitch = 0.32;
-    view.dist = 10;
-    game.panel.setStars(0);
-    game.panel.setCash(story.cash);
-    game.panel.setBrief('Free roam — Solmar Bay', null);
+    heat.setStars(0);
+    rig.yaw = Math.PI;
+    rig.pitch = 0.32;
+    rig.dist = 10;
+    game.hud.setStars(0);
+    game.hud.setCash(story.cash);
+    game.hud.setBrief('Free roam — Solmar Bay', null);
   } else if (name === 'chase') {
     // Mid-pursuit: the hero in a stolen sedan, a cruiser closing in, four stars.
     const sedan = game.traffic[2];
     putHeroInCar(sedan, 60, 60, Math.PI * 0.5);
     sedan.speed = 22;
-    heat.set(4);
+    heat.setStars(4);
     const cop = heat.cars[0];
     if (cop) {
       cop.x = 52;
@@ -79,12 +79,12 @@ export function poseShot(name, game) {
       cop2.speed = 20;
       cop2.sync();
     }
-    view.yaw = Math.PI * 0.5;
-    view.pitch = 0.3;
-    view.dist = 13;
-    game.panel.setStars(4);
-    game.panel.setCash(story.cash + 1400);
-    game.panel.setBrief('Heat Wave: Lose the heat — get to 0 stars', null);
+    rig.yaw = Math.PI * 0.5;
+    rig.pitch = 0.3;
+    rig.dist = 13;
+    game.hud.setStars(4);
+    game.hud.setCash(story.cash + 1400);
+    game.hud.setBrief('Heat Wave: Lose the heat — get to 0 stars', null);
   } else {
     // Mission: at the Bay Bank with the beacon up, the score about to land.
     if (hero.inCar) hero.exit();
@@ -92,17 +92,17 @@ export function poseShot(name, game) {
     hero.z = P.bank.z + 18;
     hero.heading = Math.PI * 0.9;
     hero.sync();
-    heat.set(4);
-    view.yaw = Math.PI * 0.9;
-    view.pitch = 0.34;
-    view.dist = 12;
-    game.panel.setStars(4);
-    game.panel.setCash(story.cash + 1400);
-    game.panel.setBrief('Solmar Score: Grab the cash — stay at the bank', 12);
+    heat.setStars(4);
+    rig.yaw = Math.PI * 0.9;
+    rig.pitch = 0.34;
+    rig.dist = 12;
+    game.hud.setStars(4);
+    game.hud.setCash(story.cash + 1400);
+    game.hud.setBrief('Solmar Score: Grab the cash — stay at the bank', 12);
     story.beacon.visible = true;
     story.beacon.position.set(P.bank.x, 0, P.bank.z);
   }
-  game.panel.setHealth(hero.health);
-  game.panel.setSight(false);
-  game.panel.show(null);
+  game.hud.setHealth(hero.health);
+  game.hud.setSight(false);
+  game.hud.show(null);
 }
