@@ -4,11 +4,13 @@ export function policeDispatch(scene,district){
   const T=window.THREE,units=[],officers=[],blocks=[];let aircraft=null;let stars=0,quiet=0,arrest=0,lastCrime=0;
   // Air support and static barricades have independent lifecycles from pursuers.
   function support(person){
-    if(stars<4){
+    if(stars<3){
       if(aircraft){scene.remove(aircraft.body);aircraft.body.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});aircraft=null;}
-      for(const block of blocks){scene.remove(block.body);block.body.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}blocks.length=0;return;
     }
-    if(!aircraft){
+    if(stars<4){
+      for(const block of blocks){scene.remove(block.body);block.body.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}blocks.length=0;
+    }
+    if(stars>=3&&!aircraft){
       const body=new T.Group();body.name='CONDOR-1';
       prism(body,[3,2.3,6],0x263d49,[0,0,0]);prism(body,[2.7,1.2,1.6],0x7dc6d2,[0,.2,2.5]);
       prism(body,[.7,.7,7],0x263d49,[0,.2,-5]);prism(body,[.4,2,1.8],0xe8bc69,[0,1,-8]);
@@ -18,7 +20,7 @@ export function policeDispatch(scene,district){
       const beam=new T.Mesh(new T.ConeGeometry(10,27,32,1,true),new T.MeshBasicMaterial({color:0xffe6a2,transparent:true,opacity:.09,side:T.DoubleSide,depthWrite:false}));beam.position.y=-14;body.add(beam);
       scene.add(body);aircraft={body,rotor,tailRotor,beam,x:person.x+4,z:person.z-18};body.position.set(aircraft.x,28,aircraft.z);
     }
-    if(!blocks.length){
+    if(stars>=4&&!blocks.length){
       const angle=person.angle??0,horizontal=Math.abs(Math.sin(angle))>.7;
       const along=horizontal?person.x:person.z,across=limit(Math.round((horizontal?person.z:person.x)/60)*60,-180,180);
       const direction=along>150?-1:along< -150?1:(horizontal?Math.sin(angle):Math.cos(angle))>=0?1:-1;
@@ -31,7 +33,7 @@ export function policeDispatch(scene,district){
       }
     }
   }
-  function airTick(dt,person){if(!aircraft)return;const a=aircraft,k=1-Math.exp(-dt*1.8);a.x+=(person.x+4-a.x)*k;a.z+=(person.z-18-a.z)*k;a.body.position.set(a.x,28,a.z);a.rotor.rotation.y+=dt*35;a.tailRotor.rotation.x+=dt*40;const direction=new T.Vector3(person.x-a.x,-27,person.z-a.z),length=direction.length();direction.normalize();a.beam.quaternion.setFromUnitVectors(new T.Vector3(0,-1,0),direction);a.beam.position.copy(direction).multiplyScalar(length/2);a.beam.scale.y=length/27;}
+  function airTick(dt,person){if(!aircraft)return;const a=aircraft,k=1-Math.exp(-dt*1.8);a.orbit=(a.orbit??0)+dt*.65;a.x+=(person.x+4+Math.sin(a.orbit)*12-a.x)*k;a.z+=(person.z-18+(1-Math.cos(a.orbit))*8-a.z)*k;a.body.position.set(a.x,28,a.z);a.rotor.rotation.y+=dt*35;a.tailRotor.rotation.x+=dt*40;const direction=new T.Vector3(person.x-a.x,-27,person.z-a.z),length=direction.length();direction.normalize();a.beam.quaternion.setFromUnitVectors(new T.Vector3(0,-1,0),direction);a.beam.position.copy(direction).multiplyScalar(length/2);a.beam.scale.y=length/27;}
   function raise(level,person){
     stars=limit(level,0,5);quiet=0;lastCrime=0;
     support(person);

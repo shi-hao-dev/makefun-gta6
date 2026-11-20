@@ -1,9 +1,14 @@
 import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-game.ts';
 
 // Package runtime assets and the four preserved photographs; exclude test output.
 const destination = resolve(process.env.MAKEFUN_OUTPUT_DIR || '/output');
+const source = resolve(fileURLToPath(new URL('.', import.meta.url)));
+if (destination === source || ['game', 'screenshots'].some(tree => destination === resolve(source, tree) || destination.startsWith(resolve(source, tree) + '/'))) {
+  throw new Error('Choose an output directory outside the runtime and screenshot sources.');
+}
 mkdirSync(destination, { recursive: true });
 for (const tree of ['game', 'screenshots']) {
   const target = resolve(destination, tree);

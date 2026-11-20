@@ -18,6 +18,7 @@ export function seeded(seed=714) {
   let value=seed;return ()=>{value=(value*1664525+1013904223)>>>0;return value/4294967296;};
 }
 export function slideCircle(position, radius, obstacles) {
+  // The southern bound includes the marina approach beyond the city grid.
   let x=limit(position.x,-225,225),z=limit(position.z,-225,271);
   for (let pass=0;pass<2;pass++) for(const box of obstacles){
     const nearX=limit(x,box.x-box.w/2,box.x+box.w/2),nearZ=limit(z,box.z-box.d/2,box.z+box.d/2);

@@ -2,7 +2,6 @@
 // This does not substitute for Chromium rendering or request validation.
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
 const require=createRequire(import.meta.url),three=require('../game/vendor/three.min.js');
 let now=0,scheduled=null;
 const handlers=new Map(),nodes=new Map(),memory=new Map();
@@ -10,7 +9,8 @@ const paint={fillRect(){},fillText(){},beginPath(){},moveTo(){},lineTo(){},strok
 function node(){return {style:{},hidden:false,children:[],addEventListener(){},getContext:()=>paint,textContent:'',innerHTML:'',width:512,height:96};}
 globalThis.document={getElementById(id){if(!nodes.has(id))nodes.set(id,node());return nodes.get(id);},createElement:()=>node()};
 globalThis.window=globalThis;
-window.THREE={...three,WebGLRenderer:class{constructor(){this.shadowMap={};}setSize(){}setPixelRatio(){}render(){}}};
+let frame;
+window.THREE={...three,WebGLRenderer:class{constructor(){this.shadowMap={};}setSize(){}setPixelRatio(){}render(scene,camera){frame={scene,camera};}}};
 globalThis.location={search:'',reload(){}};
 globalThis.innerWidth=1280;globalThis.innerHeight=720;globalThis.devicePixelRatio=1;
 globalThis.performance={now:()=>now};
@@ -39,8 +39,7 @@ function travel(x,z){
   if(held)event('keyup',held);event('keydown','Space');advance(.4);event('keyup','Space');
   assert.ok(observe().mode==='complete'||(Math.abs(x-observe().x)<5&&Math.abs(z-observe().z)<5),`Route failed ${x},${z}: ${JSON.stringify(observe())}`);
 }
-const results=[];
-function record(label){const state=observe();console.log(label,JSON.stringify(state));results.push({label,...state});}
+function record(label){console.log(label,JSON.stringify(observe()));}
 tap('Enter');travel(-110,0);tap('KeyE');travel(0,0);record('job0');assert.equal(observe().job,1);
 travel(0,240);tap('KeyE');record('package');assert.equal(observe().phase,1);
 tap('KeyE');travel(0,120);travel(-120,120);record('job1');assert.equal(observe().job,2);
@@ -56,16 +55,56 @@ travel(-60,-120);travel(-120,-120);record('job6');assert.equal(observe().job,7);
 for(const [x,z] of [[-120,0],[0,0],[0,-120],[120,-120],[120,120]])travel(x,z);
 assert.equal(observe().phase,5);assert.equal(observe().stars,0);assert.equal(observe().heli,null);assert.equal(observe().blocks.length,0);
 travel(120,-120);travel(-120,-120);record('job7');
-assert.equal(observe().job,8);assert.equal(observe().mode,'complete');assert.equal(observe().cash,16600);assert.equal(observe().earnings,16600);
-writeFileSync(new URL('./simulation-results.json',import.meta.url),JSON.stringify({type:'Node simulation with rendering shim; not a browser playtest',results},null,2));
-
+assert.equal(observe().job,8);assert.equal(observe().cash,16600);assert.equal(observe().earnings,16600);
+assert.equal(observe().stars,3);assert.ok(observe().heli);assert.equal(observe().blocks.length,0);
+assert.equal(observe().respect,'HUSTLER');
+tap('Digit2');assert.equal(observe().weapon,'Shotgun');assert.equal(observe().ammo,12);
+tap('Digit3');assert.equal(observe().weapon,'SMG');assert.equal(observe().ammo,60);
+tap('KeyQ');assert.equal(observe().weapon,'Pistol');tap('Digit1');assert.equal(observe().ammo,null);
+tap('KeyR');assert.equal(observe().station,'COASTAL');tap('KeyR');assert.equal(observe().station,'NIGHT DRIVE');tap('KeyR');assert.equal(observe().station,'SOLMAR FM');
+travel(-120,120);assert.equal(observe().phase,1);travel(0,120);travel(0,240);record('job8');
+assert.equal(observe().job,9);assert.equal(observe().respect,'PLAYER');assert.equal(observe().blocks.length,2);
+travel(0,-120);travel(120,-120); // Approach checkpoint one from the north avenue.
+travel(0,-120);travel(0,0);assert.match(nodes.get('service').textContent,/CRUZ CUSTOMS/);
+tap('KeyU');assert.match(nodes.get('service').textContent,/Engine/);tap('KeyU');
+travel(-120,0);record('job9');assert.equal(observe().job,10);
+for(const [x,z,road,cross] of [[-74,-150,-60,-120],[-14,-190,0,-180],[194,-30,180,0]]){
+  travel(Math.round(observe().x/60)*60,cross);travel(road,cross);travel(road,z);travel(x,z);travel(road,z);
+}
+assert.equal(observe().phase,3);
+travel(180,-120);travel(-120,-120);record('job10');assert.equal(observe().job,11);assert.equal(observe().stars,5);
+for(const [x,z] of [[-120,0],[0,0],[0,-120],[120,-120],[120,120]])travel(x,z);
+assert.equal(observe().stars,0);travel(120,0);advance(12.8);assert.equal(observe().phase,6);assert.ok(observe().hold>=12);
+travel(120,-120);travel(-120,-120);record('job11');
+assert.equal(observe().job,12);assert.equal(observe().mode,'complete');assert.equal(observe().cash,33100);assert.equal(observe().earnings,33100);assert.equal(observe().respect,'KINGPIN');
 tap('Enter');assert.equal(observe().mode,'playing');
 tap('Escape');const paused=observe();event('keydown','KeyW');advance(2);event('keyup','KeyW');assert.equal(observe().z,paused.z);tap('Escape');
 tap('KeyE');assert.equal(observe().car,false);
 handlers.get('mousedown')({target:{tagName:'CANVAS'}});advance(1.5);handlers.get('mouseup')({});assert.equal(observe().stars,5);
-advance(3.1);const resumeRecord=JSON.parse(memory.get('solmar-attempt-five'));assert.equal(resumeRecord.story.earnings,16600);
+advance(3.1);const resumeRecord=JSON.parse(memory.get('solmar-attempt-five'));assert.equal(resumeRecord.story.earnings,33100);
 const {slideCircle}=await import('../game/engine/geometry.js');
 const wall=[{x:20,z:20,w:20,d:20}];
 for(let z=5;z<=35;z+=.4){const settled=slideCircle({x:9,z},1.65,wall);assert.ok(Number.isFinite(settled.x)&&Number.isFinite(settled.z));}
 assert.deepEqual(slideCircle({x:999,z:-999},1.65,[]),{x:225,z:-225});
-console.log('PASS: Jobs 0–7, both twelve-second vault holds, $16,600 completion, helicopter and roadblocks, pause, combat to five stars, save and collision bounds.');
+tap('KeyE');assert.equal(observe().car,true);
+travel(0,-120);travel(0,0);tap('KeyU');tap('Digit2');tap('KeyU');
+assert.equal(observe().upgrades.armor,1);assert.equal(observe().cash,32300);
+assert.equal(JSON.parse(memory.get('solmar-attempt-five')).upgrades.armor,1);
+travel(-60,0);travel(-60,43);tap('KeyE');tap('KeyE');
+assert.match(nodes.get('service').textContent,/Shells/);tap('Digit1');assert.equal(observe().cash,32100);tap('KeyE');tap('Digit2');assert.equal(observe().ammo,42);
+advance(3.1);await import('../game/engine/session.js?resume');tap('Enter');
+assert.equal(observe().mode,'complete');assert.equal(observe().upgrades.armor,1);assert.equal(observe().ammo,42);
+for(const shot of ['cover','street','chase','mission']){
+  location.search='?shot='+shot+'&seed=7';
+  await import('../game/engine/session.js?'+shot);advance(.8);
+  const {scene,camera}=frame;scene.updateMatrixWorld(true);camera.updateMatrixWorld(true);
+  assert.match(nodes.get('syslabel').textContent,/12 STORY JOBS/);
+  if(shot==='chase'){assert.equal(observe().stars,5);assert.equal(observe().blocks.length,2);}
+  if(shot==='mission')assert.equal(observe().hold,6);
+  if(shot!=='street'){
+    const heli=scene.getObjectByName('CONDOR-1');assert.ok(heli);
+    const p=heli.getWorldPosition(new three.Vector3()).project(camera);
+    assert.ok(Math.abs(p.x)<.75&&Math.abs(p.y)<.86&&Math.abs(p.z)<1,shot+' helicopter outside safe frame: '+p.toArray());
+  }
+}
+console.log('PASS: Jobs 0–11, $33,100 completion, weapons, respect, garage, radio, helicopter and roadblocks, pause, combat to five stars, save and collision bounds.');

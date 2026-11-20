@@ -1,6 +1,7 @@
 import {prism,label,seeded,slideCircle} from './geometry.js';
 const T=window.THREE;
 export const sites={start:{x:-120,z:0},comet:{x:-110,z:0},garage:{x:0,z:0},pier:{x:0,z:240},motel:{x:-120,z:120},bank:{x:120,z:0},club:{x:-60,z:-60},hideout:{x:-120,z:-120}};
+sites.shop={x:-60,z:43};
 export function constructDistrict(scene){
   const random=seeded(),barriers=[],root=new T.Group();scene.add(root);
   prism(root,[490,.3,510],0xa3b098,[0,-.3,15]);
@@ -31,6 +32,19 @@ export function constructDistrict(scene){
   label(root,'BAY BANK',120,6,-11,20);label(root,'STARFISH MOTEL',-120,6,109,24,'#ffb7ad');
   label(root,'CRUZ CUSTOMS',0,5,-11,23,'#8ff5d9');label(root,'SOLMAR MARINA',0,5,250,27);
   label(root,'THE TIDE CLUB',-60,6,-71,22,'#ffb2c4');
+  label(root,'SOLMAR SUPPLY',-60,4,35,18,'#9cffc6');
+  prism(root,[17,3,.45],0x344749,[-60,3.8,34.6]);
+  for(const x of [-67,-53])prism(root,[.3,2.4,.4],0x72d8ac,[x,1.2,35],true);
+  prism(root,[410,.25,7],0x8d6351,[0,.08,257]);
+  for(let x=-204;x<=204;x+=2)prism(root,[1.85,.12,7],x%6?0xc89263:0xd8a978,[x,.25,257]);
+  for(let x=-195;x<=195;x+=30){
+    palm(x,266);prism(root,[.2,5,.2],0x374a4d,[x,2.5,260]);
+    prism(root,[1.5,.4,.9],0xffdfa0,[x,5,260],true);
+  }
+  prism(root,[10,.5,49],0xac805c,[0,.15,291]);
+  for(const x of [-5,5])for(let z=272;z<316;z+=7){
+    prism(root,[.45,2,.45],0x795640,[x,.1,z]);prism(root,[.25,.23,7],0xe2bb87,[x,1.1,z]);
+  }
   prism(root,[25,.5,23],0xb59670,[0,.1,257]);
   for(const x of [-19,19]){prism(root,[6,2,14],0xf2ecdb,[x,.1,265]);prism(root,[4,2,5],0x5b8b95,[x,1.8,265]);}
   for(let x=-210;x<=210;x+=30) palm(x,252);

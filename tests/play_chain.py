@@ -80,11 +80,25 @@ async def run():
         for x,z in [(-120,0),(0,0),(0,-120),(120,-120),(120,120)]:await travel(x,z)
         assert (await state())['stars']==0
         await travel(120,-120);await travel(-120,-120)
-        final=await state();assert final['job']==8 and final['mode']=='complete' and final['cash']==16600 and final['earnings']==16600
+        assert (await state())['job']==8
+        for x,z in [(-120,120),(0,120),(0,240),(0,-120),(120,-120),(0,-120),(0,0),(-120,0)]:
+            await travel(x,z)
+        assert (await state())['job']==10
+        for x,z in [(-120,-120),(-60,-120),(-60,-150),(-74,-150),(-60,-150),
+                    (-60,-180),(0,-180),(0,-190),(-14,-190),(0,-190),
+                    (0,0),(180,0),(180,-30),(194,-30),(180,-30),(180,-120),(-120,-120)]:
+            await travel(x,z)
+        assert (await state())['job']==11
+        for x,z in [(-120,0),(0,0),(0,-120),(120,-120),(120,120),(120,0)]:
+            await travel(x,z)
+        await page.wait_for_timeout(13000)
+        assert (await state())['phase']==6
+        await travel(120,-120);await travel(-120,-120)
+        final=await state();assert final['job']==12 and final['mode']=='complete' and final['cash']==33100 and final['earnings']==33100
         assert not errors,errors
         assert not failed,failed
         assert not external,external
-        result={'jobs':[True]*8,'final':final,'console_errors':errors,'failed_requests':failed,'external_requests':external}
+        result={'jobs':[True]*12,'final':final,'console_errors':errors,'failed_requests':failed,'external_requests':external}
         with open('tests/results.json','w') as f:json.dump(result,f,indent=2)
         print('FULL CHAIN PASSED',flush=True)
         await browser.close()
