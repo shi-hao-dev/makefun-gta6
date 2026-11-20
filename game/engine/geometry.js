@@ -1,5 +1,6 @@
 const T = window.THREE;
 export const limit = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+// Planar distances deliberately ignore aircraft altitude and actor mesh height.
 export const gap = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
 export function prism(parent, dimensions, tint, position, luminous=false) {
   const material = new T.MeshStandardMaterial({color:tint,roughness:.7,metalness:.08,emissive:luminous?tint:0,emissiveIntensity:luminous?.6:0});

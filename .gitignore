@@ -3,3 +3,5 @@
 /node_modules/
 __pycache__/
 *.log
+# Generated simulation telemetry is reproducible from the public controls.
+/tests/simulation-results.json

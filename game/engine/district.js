@@ -1,6 +1,6 @@
 import {prism,label,seeded,slideCircle} from './geometry.js';
 const T=window.THREE;
-export const sites={start:{x:-120,z:0},comet:{x:-110,z:0},garage:{x:0,z:0},pier:{x:0,z:240},motel:{x:-120,z:120},bank:{x:120,z:0},hideout:{x:-120,z:-120}};
+export const sites={start:{x:-120,z:0},comet:{x:-110,z:0},garage:{x:0,z:0},pier:{x:0,z:240},motel:{x:-120,z:120},bank:{x:120,z:0},club:{x:-60,z:-60},hideout:{x:-120,z:-120}};
 export function constructDistrict(scene){
   const random=seeded(),barriers=[],root=new T.Group();scene.add(root);
   prism(root,[490,.3,510],0xa3b098,[0,-.3,15]);

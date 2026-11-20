@@ -1,6 +1,22 @@
 [
-  {"name":"1-cover.jpg", "query":"?shot=cover&seed=7"},
-  {"name":"2-street.jpg", "query":"?shot=street&seed=7"},
-  {"name":"3-chase.jpg", "query":"?shot=chase&seed=7"},
-  {"name":"4-mission.jpg", "query":"?shot=mission&seed=7"}
+  {
+    "name": "1-cover.jpg",
+    "query": "?shot=cover&seed=7",
+    "systems": "Coastal Comet hero, city skyline, CONDOR-1, mission radar and eight-job label"
+  },
+  {
+    "name": "2-street.jpg",
+    "query": "?shot=street&seed=7",
+    "systems": "On foot, pedestrians and traffic, background roadblock, package objective and HUD"
+  },
+  {
+    "name": "3-chase.jpg",
+    "query": "?shot=chase&seed=7",
+    "systems": "Five-star Comet pursuit, CONDOR-1, roadblock ahead, cruisers, gold checkpoint and minimap"
+  },
+  {
+    "name": "4-mission.jpg",
+    "query": "?shot=mission&seed=7",
+    "systems": "The Vault Job at Tide Club, gold hold ring, CONDOR-1, four stars and hold progress"
+  }
 ]

@@ -17,9 +17,11 @@ let saved=null;try{saved=portrait?null:JSON.parse(localStorage.getItem('solmar-a
 let cash=saved?.cash??0,ride=null,mode='title',time=0,shootWait=0,arrestResult=null,angle=0,autoSave=0,completed=false;
 const person=pedestrian(stage,saved?.x??sites.start.x,saved?.z??sites.start.z);person.hp=100;
 const comet=automobile(stage,saved?.carX??sites.comet.x,saved?.carZ??sites.comet.z);comet.angle=Math.PI/2;alignActor(comet);
-const story=createStory(saved?.story,text=>{overlay.message(text);sound.tone(660,.25);},pay=>cash+=pay);
+const stagedStory=portrait?({cover:{job:4},street:{job:5},chase:{job:7,phase:1},mission:{job:6,phase:1,hold:6}}[portrait]??{job:4}):saved?.story;
+const story=createStory(stagedStory,text=>{overlay.message(text);sound.tone(660,.25);},pay=>cash+=pay);
 if(saved?.riding)ride=comet;
-if(story.job===2)police.raise(3,person);if(story.job===3&&story.phase===1)police.raise(4,person);
+const missionHeat=()=>story.job===2?3:story.job===7?Math.max(0,5-story.phase):(story.job>=4&&story.job<7)||(story.job===3&&story.phase===1)?4:0;
+police.raise(missionHeat(),person);
 const keys=new Set(),pulses=new Set();let pointer={x:0,y:0};
 addEventListener('keydown',event=>{if(['Space','ArrowUp','ArrowDown'].includes(event.code))event.preventDefault();if(!keys.has(event.code))pulses.add(event.code);keys.add(event.code);});
 addEventListener('keyup',event=>keys.delete(event.code));addEventListener('blur',()=>{keys.clear();if(mode==='playing')changeScreen('paused');});
@@ -30,7 +32,7 @@ function changeScreen(next){mode=next;overlay.screen(mode,cash);}
 function storeProgress(){if(portrait)return;try{localStorage.setItem('solmar-attempt-five',JSON.stringify({cash,x:person.x,z:person.z,carX:ride?.x??comet.x,carZ:ride?.z??comet.z,riding:!!ride,story:story.snapshot(),caches:district.caches.map(c=>c.taken)}));}catch{}}
 if(saved?.caches)saved.caches.forEach((taken,i)=>{if(taken&&district.caches[i]){district.caches[i].taken=true;district.caches[i].mesh.visible=false;}});
 function activate(){sound.initialize();if(mode==='busted'||mode==='wasted'){
-  person.hp=100;person.x=story.objective()?.x??0;person.z=(story.objective()?.z??0)+15;comet.x=person.x+4;comet.z=person.z;comet.health=100;alignActor(comet);ride=null;police.raise(story.job===2?3:story.job===3&&story.phase===1?4:0,person);
+  person.hp=100;person.x=story.objective()?.x??0;person.z=(story.objective()?.z??0)+15;comet.x=person.x+4;comet.z=person.z;comet.health=100;alignActor(comet);ride=null;police.raise(missionHeat(),person);
 }changeScreen('playing');}
 document.getElementById('resume').addEventListener('click',activate);
 function switchSeat(){if(ride){ride.parked=true;ride.vx=ride.vz=0;const p=district.resolve({x:ride.x+3.7,z:ride.z},.5);person.x=p.x;person.z=p.z;ride=null;sound.tone(240);return;}
@@ -50,8 +52,8 @@ function discharge(){
   tracer=new T.Line(new T.BufferGeometry().setFromPoints([start,end]),new T.LineBasicMaterial({color:0xffec9a}));stage.add(tracer);tracerLife=.09;police.raise(Math.min(5,police.stars+1),person);
 }
 function cameraTick(dt){
-  const offset=portrait?(portrait==='street'?new T.Vector3(8,6,14):portrait==='mission'?new T.Vector3(14,9,20):new T.Vector3(10,7,17)):new T.Vector3(0,19,26);
-  const desired=new T.Vector3(person.x+offset.x,offset.y,person.z+offset.z);lens.position.lerp(desired,1-Math.exp(-dt*7));lens.lookAt(person.x,1.5,person.z-4);
+  const offset=portrait?(portrait==='street'?new T.Vector3(8,6,14):portrait==='mission'?new T.Vector3(9,30,42):new T.Vector3(9,32,46)):new T.Vector3(0,19,26);
+  const desired=new T.Vector3(person.x+offset.x,offset.y,person.z+offset.z);lens.position.lerp(desired,1-Math.exp(-dt*7));lens.lookAt(person.x,portrait&&portrait!=='street'?10:1.5,person.z-(portrait?12:4));
   sunlight.position.set(person.x-70,110,person.z+60);sunlight.target.position.set(person.x,0,person.z);sunlight.target.updateMatrixWorld();
 }
 function update(dt){
@@ -67,6 +69,7 @@ function update(dt){
     if(ride){moveVehicle(ride,dx,dz,dt,district,boost,keys.has('Space'));person.x=ride.x;person.z=ride.z;person.angle=ride.angle;
       // Soft traffic impacts cost speed, without pushing either participant into buildings.
       for(const other of population.cars)if(other!==ride&&gap(ride,other)<3.3){ride.vx*=.97;ride.vz*=.97;}
+      for(const block of police.blocks)if(gap(ride,block)<4){ride.vx*=.85;ride.vz*=.85;if(shootWait<=0){sound.tone(130,.12);shootWait=.25;}}
       if(ride.health<=0){switchSeat();overlay.message('Engine disabled. Find another car.');}
     }else{
       const size=Math.hypot(dx,dz)||1,speed=boost?10:6;const p=district.resolve({x:person.x+dx/size*speed*dt,z:person.z+dz/size*speed*dt},.5);person.x=p.x;person.z=p.z;
@@ -74,34 +77,38 @@ function update(dt){
       if(keys.has('Fire')&&shootWait<=0)discharge();
     }
     person.body.visible=!ride;alignActor(person);population.tick(dt,ride,time);
-    arrestResult=police.tick(dt,person,ride,story.job===3&&story.phase===1);
+    arrestResult=police.tick(dt,person,ride,(story.job===3||story.job===6)&&story.phase===1||story.job===4||story.job===5||story.job===7);
     story.tick(dt,person,ride,comet,police);
     for(const cache of district.caches)if(!cache.taken&&gap(person,cache)<2.5){cache.taken=true;cache.mesh.visible=false;cash+=150;overlay.message('Hidden stash · +$150');sound.tone(900,.3);storeProgress();}
-    if(story.job===4&&!completed){completed=true;changeScreen('complete');storeProgress();}
+    if(story.job===8&&!completed){completed=true;changeScreen('complete');storeProgress();}
     if(person.hp<=0)changeScreen('wasted');else if(arrestResult)changeScreen('busted');
     if(!police.stars)person.hp=Math.min(100,person.hp+dt*1.5);
     autoSave+=dt;if(autoSave>3){storeProgress();autoSave=0;}
     sound.tick(dt,ride?Math.hypot(ride.vx,ride.vz):0,police.stars);
   }else if(mode==='title')population.tick(dt,null,time);
+  if(portrait)police.airTick(0,person);
   if(tracerLife>0){tracerLife-=dt;if(tracerLife<=0&&tracer)tracer.visible=false;}
   district.mark(story.objective(),time);cameraTick(dt);pulses.clear();
   overlay.render({person,ride,story,police,cash,district,population});
 }
 function arrangePortrait(name){
   changeScreen('playing');
-  const positions={cover:[0,35],street:[-60,35],chase:[0,0],mission:[120,12]};const [x,z]=positions[name]??positions.cover;
+  const positions={cover:[0,228],street:[-60,35],chase:[0,60],mission:[-60,-54]};const [x,z]=positions[name]??positions.cover;
   person.x=x;person.z=z;comet.x=x;comet.z=z;comet.angle=.15;alignActor(comet);
   if(name!=='street'&&name!=='mission'){ride=comet;person.body.visible=false;}else{person.angle=Math.PI;alignActor(person);comet.x=x+5;comet.z=z+4;alignActor(comet);}
-  police.raise(name==='street'?0:name==='mission'?4:3,person);
-  police.units.forEach((car,i)=>{car.x=x-5+i*6;car.z=z-13-i*5;car.angle=.1;alignActor(car);});
+  police.raise(0,person);police.raise(name==='chase'?5:4,person);
+  if(name==='chase')police.blocks.forEach((b,i)=>{b.x=0;b.z=z-24-i*60;b.body.position.set(b.x,0,b.z);});
+  police.airTick(0,person);
+  const label=document.getElementById('syslabel');label.hidden=false;label.textContent=name==='street'?'8 STORY JOBS · ON FOOT · TRAFFIC · PEDESTRIANS · ROADBLOCKS · MINIMAP':name==='mission'?'8 STORY JOBS · VAULT HOLD · CONDOR-1 HELICOPTER · ROADBLOCKS · MINIMAP':name==='cover'?'8 STORY JOBS · COMET · COASTAL CITY · CONDOR-1 HELICOPTER · MINIMAP':'8 STORY JOBS · CONDOR-1 HELICOPTER · ROADBLOCKS · 5-STAR DISPATCH · MINIMAP · STASHES';
+  police.units.forEach((car,i)=>{car.x=x+(i%2?5:-5);car.z=z+7+i*6;car.angle=.1;alignActor(car);});
   population.cars.slice(0,5).forEach((car,i)=>{car.x=x+(i%2?5:-5);car.z=z-24-i*13;car.angle=i%2?0:Math.PI;alignActor(car);});
   population.people.slice(0,6).forEach((p,i)=>{p.x=x+(i%2?12:-12);p.z=z-4-i*7;alignActor(p);});
-  if(name==='mission'){const marker=sites.bank;district.mark(marker,0);}
-  overlay.message(name==='mission'?'THE SOLMAR SCORE · Hold the entrance. Get the money.':name==='street'?'SOLMAR BAY · Every street has a story.':'HEAT WAVE · Lose the cruisers. Own the coast.');
+  if(name==='mission'){const marker=sites.club;district.mark(marker,0);}
+  overlay.message(name==='cover'?'SOLMAR HEAT · Eight jobs. One coast. CONDOR-1 on patrol.':name==='mission'?'THE VAULT JOB · Tide Club / 12-second hold under CONDOR-1.':name==='street'?'SOLMAR BAY · Every street has a story.':'KING OF SOLMAR · Five stars. Air support. Roadblocks ahead.');
 }
 if(portrait)arrangePortrait(portrait);
 // Read-only observation surface: the playtest drives exclusively through keyboard and mouse events.
-window.solmarState=()=>({mode,x:person.x,z:person.z,hp:person.hp,car:!!ride,carHealth:ride?.health??null,speed:ride?Math.hypot(ride.vx,ride.vz):0,job:story.job,phase:story.phase,hold:story.hold,earnings:story.earnings,cash,stars:police.stars,quiet:police.quiet,target:story.objective(),units:police.units.map(c=>({x:c.x,z:c.z,recover:c.recover}))});
+window.solmarState=()=>({mode,x:person.x,z:person.z,hp:person.hp,car:!!ride,carHealth:ride?.health??null,speed:ride?Math.hypot(ride.vx,ride.vz):0,job:story.job,phase:story.phase,hold:story.hold,earnings:story.earnings,cash,stars:police.stars,quiet:police.quiet,target:story.objective(),heli:police.heli,blocks:police.blocks.map(b=>({x:b.x,z:b.z})),units:police.units.map(c=>({x:c.x,z:c.z,recover:c.recover}))});
 let previous=performance.now(),frames=0;
-function animate(now){const dt=Math.min(.05,(now-previous)/1000);previous=now;update(dt);if(portrait){document.getElementById('jobname').textContent=portrait==='mission'?'Solmar Score':portrait==='street'?'The city is alive':'Heat Wave';document.getElementById('instruction').textContent=portrait==='mission'?'BAY BANK / Hold the entrance. Escape to the safehouse.':portrait==='street'?'Explore Solmar Bay. Steal a ride. Find your next score.':'Three stars. Open avenues. Find a way out.';if(portrait==='mission')district.mark(sites.bank,time);}painter.render(stage,lens);if(++frames>=45)window.__shotReady=true;requestAnimationFrame(animate);}
+function animate(now){const dt=Math.min(.05,(now-previous)/1000);previous=now;update(dt);if(portrait){document.getElementById('jobname').textContent=portrait==='mission'?'The Vault Job':portrait==='street'?'Roadblock Run':portrait==='cover'?'Solmar Heat · Eight jobs':'King of Solmar';document.getElementById('instruction').textContent=portrait==='mission'?'THE TIDE CLUB / Hold the gold ring for 12s. CONDOR-1 overhead.':portrait==='street'?'On foot at Starfish avenue. Traffic, pedestrians and roadblocks.':portrait==='cover'?'Eight jobs. One coast. Steal the Comet and build your empire.':'Five stars · CONDOR-1 overhead · Roadblocks ahead. Follow the gold checkpoints.';}painter.render(stage,lens);if(++frames>=45)window.__shotReady=true;requestAnimationFrame(animate);}
 requestAnimationFrame(animate);

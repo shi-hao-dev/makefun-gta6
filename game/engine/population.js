@@ -18,6 +18,7 @@ export function pedestrian(scene,x,z,uniform=false){
   const limbs=[];for(const side of [-1,1]){limbs.push(prism(body,[.22,.8,.25],0x273f51,[side*.2,.4,0]));prism(body,[.18,.7,.22],uniform?0x234f75:0xe0ab80,[side*.44,1.2,0]);}
   scene.add(body);return {x,z,angle:0,body,limbs,down:false};
 }
+// Roadblock cruisers can use a local Group as their scene parent.
 export function alignActor(actor){actor.body.position.set(actor.x,0,actor.z);actor.body.rotation.y=actor.angle;}
 export function moveVehicle(vehicle,dx,dz,seconds,district,boost=false,brake=false){
   const norm=Math.hypot(dx,dz),pace=boost?39:30;

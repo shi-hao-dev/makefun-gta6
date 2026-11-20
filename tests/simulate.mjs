@@ -48,16 +48,24 @@ for(let lap=0;lap<4&&observe().job===2;lap++)for(const [x,z]of[[-120,0],[0,0],[0
 record('job2');assert.equal(observe().job,3);
 let state=observe();travel(state.x,Math.round(state.z/60)*60);travel(120,Math.round(observe().z/60)*60);travel(120,0);tap('KeyE');advance(12.8);record('bankHold');assert.equal(observe().phase,2);
 tap('KeyE');travel(120,-120);travel(-120,-120);record('job3');
-assert.equal(observe().job,4);assert.equal(observe().mode,'complete');assert.equal(observe().cash,5600);assert.equal(observe().earnings,5600);
+assert.equal(observe().job,4);assert.ok(observe().heli);assert.equal(observe().blocks.length,2);
+travel(-120,0);travel(0,0);travel(0,-120);record('job4');assert.equal(observe().job,5);
+travel(0,240);tap('KeyE');assert.equal(observe().phase,1);tap('KeyE');travel(0,120);travel(-120,120);record('job5');assert.equal(observe().job,6);
+travel(-120,-60);travel(-60,-60);tap('KeyE');tap('KeyE');advance(12.8);record('clubHold');assert.equal(observe().phase,2);assert.ok(observe().heli);
+travel(-60,-120);travel(-120,-120);record('job6');assert.equal(observe().job,7);assert.equal(observe().stars,5);
+for(const [x,z] of [[-120,0],[0,0],[0,-120],[120,-120],[120,120]])travel(x,z);
+assert.equal(observe().phase,5);assert.equal(observe().stars,0);assert.equal(observe().heli,null);assert.equal(observe().blocks.length,0);
+travel(120,-120);travel(-120,-120);record('job7');
+assert.equal(observe().job,8);assert.equal(observe().mode,'complete');assert.equal(observe().cash,16600);assert.equal(observe().earnings,16600);
 writeFileSync(new URL('./simulation-results.json',import.meta.url),JSON.stringify({type:'Node simulation with rendering shim; not a browser playtest',results},null,2));
 
 tap('Enter');assert.equal(observe().mode,'playing');
 tap('Escape');const paused=observe();event('keydown','KeyW');advance(2);event('keyup','KeyW');assert.equal(observe().z,paused.z);tap('Escape');
 tap('KeyE');assert.equal(observe().car,false);
 handlers.get('mousedown')({target:{tagName:'CANVAS'}});advance(1.5);handlers.get('mouseup')({});assert.equal(observe().stars,5);
-advance(3.1);const resumeRecord=JSON.parse(memory.get('solmar-attempt-five'));assert.equal(resumeRecord.story.earnings,5600);
+advance(3.1);const resumeRecord=JSON.parse(memory.get('solmar-attempt-five'));assert.equal(resumeRecord.story.earnings,16600);
 const {slideCircle}=await import('../game/engine/geometry.js');
 const wall=[{x:20,z:20,w:20,d:20}];
 for(let z=5;z<=35;z+=.4){const settled=slideCircle({x:9,z},1.65,wall);assert.ok(Number.isFinite(settled.x)&&Number.isFinite(settled.z));}
 assert.deepEqual(slideCircle({x:999,z:-999},1.65,[]),{x:225,z:-225});
-console.log('PASS: Jobs 0–3, twelve-second bank hold, $5,600 completion, pause, combat to five stars, save and collision bounds.');
+console.log('PASS: Jobs 0–7, both twelve-second vault holds, $16,600 completion, helicopter and roadblocks, pause, combat to five stars, save and collision bounds.');

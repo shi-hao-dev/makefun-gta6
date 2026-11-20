@@ -4,7 +4,7 @@ import { extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const publicRoot = fileURLToPath(new URL('./game/', import.meta.url));
 const port = Number(process.env.PORT || 8080);
-const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css' };
+const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.json':'application/json' };
 createServer(async (req, res) => {
   try {
     const path = decodeURIComponent(new URL(req.url || '/', 'http://localhost').pathname);

@@ -2,7 +2,7 @@ import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { buildDossier } from './vendor/makefun-game.ts';
 
-// Assemble only the two public asset trees; the helper is the unchanged kit library.
+// Package runtime assets and the four preserved photographs; exclude test output.
 const destination = resolve(process.env.MAKEFUN_OUTPUT_DIR || '/output');
 mkdirSync(destination, { recursive: true });
 for (const tree of ['game', 'screenshots']) {
