@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
 <title>Solmar Heat — open-world crime in Solmar Bay</title>
 <style>
   :root { color-scheme: dark; }
@@ -66,7 +67,6 @@
   #ov-busted h2 { color: #2e6bff; }
   #ov-wasted h2 { color: #e5534b; }
   #ov-done h2 { color: #37c978; }
-  #live { position: fixed; left: -9999px; top: -9999px; }
 </style>
 </head>
 <body>
@@ -136,8 +136,7 @@
   <div class="go">Press Enter to keep playing</div>
 </div>
 
-<div id="live" aria-live="polite"></div>
 <script src="vendor/three.min.js"></script>
-<script type="module" src="src/boot.js"></script>
+<script type="module" src="src/app.js"></script>
 </body>
 </html>
